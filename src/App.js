@@ -23,10 +23,12 @@ import { thicknessOptions, deviceLists, functionLists } from "./components/thick
 // Constants for styles
 const styles = {
   panel: (isPanelVisible, isDarkMode) => ({
-    width: isPanelVisible ? (window.innerWidth >= 1024 ? "30vw" : "60vw") : "0",
-    overflow: isPanelVisible ? "auto" : "hidden",
+    width: isPanelVisible ? "40vw" : "0", // Always 40% of the viewport width
+    maxWidth: "400px", // Limit maximum width for very large screens
+    minWidth: isPanelVisible ? "300px" : "0", // Minimum width for smaller screens
+    overflow: "hidden", // Hide overflow when panel is closed
     padding: isPanelVisible ? "25px" : "0",
-    transition: "all 0.3s ease-in-out",
+    transition: "all 0.3s ease-in-out", // Smooth transition
     backgroundColor: isDarkMode ? "#1e1e1e" : "#f4f4f4",
     color: isDarkMode ? "#f4f4f4" : "#333",
     borderRight: isPanelVisible ? "2px solid #444" : "none",
@@ -139,7 +141,7 @@ function App() {
 
             {/* Dropdowns */}
             <Dropdown
-              label="Exit Device Type:"
+              label="Exit Device"
               value={lockType}
               options={Object.keys(deviceLists)}
               onChange={handleLockTypeChange}
@@ -203,7 +205,7 @@ function App() {
           {lockType === "SVR" && visibleObjects["Top Rod"] && <SVRRods position={[15.25, 20, 0.5 + zOffset]} length={36.5} />}
           {lockType === "SVR" && visibleObjects["Bottom Rod"] && <SVRRods position={[15.25, -19, 0.5 + zOffset]} length={36} />}
           {visibleObjects["Chassis Cover"] && <Cover position={[15.25, 41, 0 + zOffset]} />}
-          {visibleObjects["Rail"] && <Rail position={[0, 0, 0]} scale={[40, 40, 40]} rotations={{ insert: [0, Math.PI / 2, Math.PI / 2], push: [Math.PI / 2, Math.PI / 2, 0], mounting: [0, Math.PI / 2, Math.PI / 2] }} />}
+          {visibleObjects["Rail"] && <Rail position={[0, 0, -1 + zOffset]} scale={[40, 40, 40]} rotations={{ insert: [0, Math.PI / 2, Math.PI / 2], push: [Math.PI / 2, Math.PI / 2, 0], mounting: [0, Math.PI / 2, Math.PI / 2] }} />}
           {visibleObjects["Trim"] && <ETTrim position={[15.25, 40.7875, 0.03 - zOffset]} />}
           {visibleObjects["Screws"] && <Screws topPosition={[15.25, 43.5375, 0.025 + zOffset]} bottomPosition={[15.25, 38.45, 0.025 + zOffset]} thickness={parseFloat(thickness)} />}
           {visibleObjects["Spindle"] && (

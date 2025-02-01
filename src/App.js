@@ -15,7 +15,6 @@ import SVRTopCase from "./components/SVRTopCase";
 import SVRBottomCase from "./components/SVRBottomCase";
 import CVRRods from "./components/CVRRods";
 import SVRRods from "./components/SVRRods";
-import PartNumbers from "./components/PartNumbers";
 import CVRInnerChassis from "./components/CVRInnerChassis";
 import MortiseCase from "./components/MortiseCase";
 import { thicknessOptions, deviceLists, functionLists } from "./components/thickDoorData";

@@ -173,7 +173,6 @@ function App() {
 
             <div style={{ margin: "20px", fontSize: "1.5em" }}>
               Device Shown: {lockType && deviceType && functionType ? `${deviceType.slice(0, -2)}${functionType}` : "Select all options"}
-              <PartNumbers thickness={thickness} />
             </div>
 
             {/* Visibility Checkboxes */}

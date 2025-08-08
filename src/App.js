@@ -44,11 +44,14 @@ function App() {
       "Ghost Door": true,
       "Ghost Frame": true,
     },
-    isDarkMode: false,
     isExpanded: false, // This now controls the modal's visibility
+    isDragging: false,
+    panelPosition: { x: 0, y: 0 },
+    initialMousePosition: { x: 0, y: 0 },
+    isVisibilityPanelOpen: true, // New state for the toggle
   });
 
-  const { thickness, lockType, deviceType, functionType, visibleObjects, isDarkMode, isExpanded } = state;
+  const { thickness, lockType, deviceType, functionType, visibleObjects, isExpanded, isDragging, panelPosition, initialMousePosition, isVisibilityPanelOpen } = state;
 
   const updateState = (key, value) => setState((prev) => ({ ...prev, [key]: value }));
 
@@ -89,6 +92,39 @@ function App() {
 
   const zOffset = parseFloat(thickness) / 2;
 
+  // Draggable panel handlers
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    updateState("isDragging", true);
+    updateState("initialMousePosition", { x: e.clientX - panelPosition.x, y: e.clientY - panelPosition.y });
+  };
+  const handleTouchStart = (e) => {
+    e.preventDefault();
+    updateState("isDragging", true);
+    updateState("initialMousePosition", { x: e.touches[0].clientX - panelPosition.x, y: e.touches[0].clientY - panelPosition.y });
+  };
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    updateState("panelPosition", { x: e.clientX - initialMousePosition.x, y: e.clientY - initialMousePosition.y });
+  };
+  const handleTouchMove = (e) => {
+    if (!isDragging) return;
+    updateState("panelPosition", { x: e.touches[0].clientX - initialMousePosition.x, y: e.touches[0].clientY - initialMousePosition.y });
+  };
+  const handleMouseUp = () => {
+    updateState("isDragging", false);
+  };
+  const handleTouchEnd = () => {
+    updateState("isDragging", false);
+  };
+
+  const toggleVisibilityPanel = (e) => {
+    // Only toggle if not dragging
+    if (!isDragging) {
+      updateState("isVisibilityPanelOpen", !isVisibilityPanelOpen);
+    }
+  };
+  
   // Reusable 3D scene rendering function
   const renderScene = () => (
     <>
@@ -98,8 +134,8 @@ function App() {
       {visibleObjects["Chassis"] && <Chassis position={[15.25, 0, 0.375 + zOffset]} />}
       {lockType === "Mortise" && visibleObjects["Mortise Case"] && <MortiseCase position={[15.975, 41, 0]} />}
       {lockType === "CVR" && visibleObjects["Inner Chassis"] && <CVRInnerChassis position={[15.25, 41, 0]} />}
-      {lockType === "CVR" && <CVRTopCase position={[15.25, 83.5, 0 + zOffset]} />}
-      {lockType === "CVR" && <CVRBottomCase position={[15.25, 2, -.875 + zOffset]} />}
+      {lockType === "CVR" && <CVRTopCase position={[15.25, 82, 0 + zOffset]} />}
+      {lockType === "CVR" && <CVRBottomCase position={[15.25, 2, 0 + zOffset]} />}
       {lockType === "SVR" && <SVRTopCase position={[15.25, 82, 0.6 + zOffset]} />}
       {lockType === "SVR" && <SVRBottomCase position={[15.25, 2, 0.6 + zOffset]} />}
       {lockType === "CVR" && visibleObjects["Top Rod"] && <CVRRods position={[15.25, 61.5, 0]} length={41} />}
@@ -120,11 +156,11 @@ function App() {
   );
 
   return (
-    <div className={`app-container ${isDarkMode ? 'dark-mode' : ''}`}>
+    <div className="app-container">
       
       <h1 style={{ fontSize: "1.5em", marginBottom: "20px" }}>Sargent Thick Door Tool</h1>
 
-      {/* Options Panel */}
+      {/* Options Panel (at the top) */}
       <div className="panel">
         <h2 style={{ fontSize: "1em", marginBottom: "15px" }}>Options</h2>
         <Dropdown
@@ -151,17 +187,17 @@ function App() {
           options={thicknessOptions.map((opt) => `${opt.value} (${opt.label})`)}
           onChange={handleThicknessChange}
         />
+
         <div style={{ margin: "20px 0", fontSize: "1em", fontWeight: "bold" }}>
           Device Shown: {lockType && deviceType && functionType ? `${deviceType.slice(0, -2)}${functionType}` : "Select all options"}
         </div>
         
-        {/* New button to launch the modal */}
         <button onClick={openModal} className="view-config-button">
           View this config in 3D
         </button>
       </div>
 
-      {/* Part Numbers Panel */}
+      {/* Part Numbers Panel (at the bottom) */}
       <div className="panel">
         <h2 style={{ fontSize: "1em", marginBottom: "15px" }}>Part Numbers</h2>
         <PartNumbers thickness={thickness} />
@@ -169,7 +205,7 @@ function App() {
 
       {/* Full-screen Modal Viewer */}
       {isExpanded && (
-        <div className={`viewer-modal ${isExpanded ? 'expanded' : ''}`}>
+        <div className={`viewer-modal ${isExpanded ? 'expanded' : ''}`} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
           <button onClick={closeModal} className="icon-button viewer-modal-close-button">
             ✖
           </button>
@@ -182,13 +218,28 @@ function App() {
               </Canvas>
             </Suspense>
             {/* Visibility Panel inside the modal */}
-            <div className="panel modal-panel">
-              <h2 style={{ fontSize: "1em", marginBottom: "15px" }}>Visibility</h2>
-              <div className="checkbox-grid">
-                {Object.keys(visibleObjects).map((key) => (
-                  <Checkbox key={key} label={key} checked={visibleObjects[key]} onChange={handleVisibilityChange} />
-                ))}
+            <div
+              className="panel modal-panel"
+              style={{ transform: `translate(${panelPosition.x}px, ${panelPosition.y}px)` }}
+            >
+              <div
+                className="panel-header"
+                onMouseDown={handleMouseDown}
+                onTouchStart={handleTouchStart}
+                onClick={toggleVisibilityPanel}
+              >
+                <h2 style={{ fontSize: "1em", marginBottom: "15px", cursor: "pointer", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  Part Visibility
+                  <span style={{ fontSize: "1.5em", cursor: "pointer" }}>{isVisibilityPanelOpen ? '▲' : '▼'}</span>
+                </h2>
               </div>
+              {isVisibilityPanelOpen && (
+                <div className="checkbox-grid">
+                  {Object.keys(visibleObjects).map((key) => (
+                    <Checkbox key={key} label={key} checked={visibleObjects[key]} onChange={handleVisibilityChange} />
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -26,7 +26,7 @@ const Chassis = ({ position }) => {
   );
   const LatchboltSpringGroovepin8800 = useLoader(
     GLTFLoader,
-    "/models/LBSpringGroovepin.gltf"
+    "/models/LBSpringGroovePin.gltf"
   );
   const OutsideCylHub8800 = useLoader(
     GLTFLoader,

@@ -1,8 +1,7 @@
 import React from "react";
 
-const platePosition = [15.25, 9.7, 0];
-const rodPosition = [15.25, 5.5, 0];
-const botSquarePosition = [15.25, -3.95, 0];
+const platePosition = [15.25, 49.3, 0];
+const rodPosition = [15.25, 45, 0];
 const rodLength = 8.46
 
 const CVRInnerChassis = ({ position }) => {
@@ -20,10 +19,6 @@ const CVRInnerChassis = ({ position }) => {
       <mesh className="Rod" position={rodPosition}>
         <cylinderGeometry args={[0.452, 0.452, rodLength, 32]} />{" "}
         {/* radiusTop, radiusBottom, length, radialSegments */}
-        <meshStandardMaterial color="white" />
-      </mesh>
-      <mesh className="Bottom Square" position={botSquarePosition}>
-        <boxGeometry args={[.5, 2, .5]} />
         <meshStandardMaterial color="white" />
       </mesh>
     </group>

@@ -1,22 +1,26 @@
-import React, { useState } from "react";
+import React, { useState, Suspense, lazy } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrbitControls } from "@react-three/drei";
 import DarkModeToggle from "./components/DarkModeToggle";
-import Door from "./components/Door";
-import Rail from "./components/Rail";
-import ETTrim from "./components/ETTrim";
-import Screws from "./components/Screws";
-import SquareSpindle from "./components/SquareSpindle";
-import CrossSpindle from "./components/CrossSpindle";
-import Chassis from "./components/Chassis";
-import Cover from "./components/Cover";
-import CVRTopCase from "./components/CVRTopCase";
-import SVRTopCase from "./components/SVRTopCase";
-import SVRBottomCase from "./components/SVRBottomCase";
-import CVRRods from "./components/CVRRods";
-import SVRRods from "./components/SVRRods";
-import CVRInnerChassis from "./components/CVRInnerChassis";
-import MortiseCase from "./components/MortiseCase";
+import "./App.css";
+
+// Lazy-load heavy 3D components to improve initial load time
+const Door = lazy(() => import("./components/Door"));
+const Rail = lazy(() => import("./components/Rail"));
+const ETTrim = lazy(() => import("./components/ETTrim"));
+const Screws = lazy(() => import("./components/Screws"));
+const SquareSpindle = lazy(() => import("./components/SquareSpindle"));
+const CrossSpindle = lazy(() => import("./components/CrossSpindle"));
+const Chassis = lazy(() => import("./components/Chassis"));
+const Cover = lazy(() => import("./components/Cover"));
+const CVRTopCase = lazy(() => import("./components/CVRTopCase"));
+const CVRBottomCase = lazy(() => import("./components/CVRBottomCase"));
+const SVRTopCase = lazy(() => import("./components/SVRTopCase"));
+const SVRBottomCase = lazy(() => import("./components/SVRBottomCase"));
+const CVRRods = lazy(() => import("./components/CVRRods"));
+const SVRRods = lazy(() => import("./components/SVRRods"));
+const CVRInnerChassis = lazy(() => import("./components/CVRInnerChassis"));
+const MortiseCase = lazy(() => import("./components/MortiseCase"));
 import { thicknessOptions, deviceLists, functionLists } from "./components/thickDoorData";
 
 // Constants for styles
@@ -114,7 +118,7 @@ function App() {
   const zOffset = parseFloat(thickness) / 2;
 
   return (
-    <div style={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+    <div className="app-container" style={{ backgroundColor: isDarkMode ? "#121212" : "#ffffff" }}>
       {/* Hamburger Menu */}
       {!isPanelVisible && (
         <button
@@ -187,33 +191,36 @@ function App() {
       <DarkModeToggle isDarkMode={isDarkMode} setIsDarkMode={(value) => updateState("isDarkMode", value)} />
 
       {/* 3D Canvas */}
-      <div style={{ flex: "1", transition: "all 0.3s ease", paddingLeft: isPanelVisible ? "0" : "20px" }}>
-        <Canvas camera={{ position: [55, 55, 55] }}>
-          <ambientLight intensity={0.5} />
-          <directionalLight position={[54, 10, 5]} intensity={1.5} />
-          <Door hideDoor={visibleObjects["Ghost Door"]} hideFrame={visibleObjects["Ghost Frame"]} thickness={parseFloat(thickness)} />
-          {visibleObjects["Chassis"] && <Chassis position={[15.25, 0, 0.375 + zOffset]} />}
-          {lockType === "Mortise" && visibleObjects["Mortise Case"] && <MortiseCase position={[15.975, 41, 0]} />}
-          {lockType === "CVR" && visibleObjects["Inner Chassis"] && <CVRInnerChassis position={[15.25, 41, 0]} />}
-          {lockType === "CVR" && <CVRTopCase position={[15.25, 82.05, 0 + zOffset]} />}
-          {lockType === "SVR" && <SVRTopCase position={[15.25, 39.7, 0.6 + zOffset]} />}
-          {lockType === "SVR" && <SVRBottomCase position={[15.25, -39, 0.6 + zOffset]} />}
-          {lockType === "CVR" && visibleObjects["Top Rod"] && <CVRRods position={[15.25, 20, 0]} length={36.75} />}
-          {lockType === "CVR" && visibleObjects["Bottom Rod"] && <CVRRods position={[15.25, -22, 0]} length={36} />}
-          {lockType === "SVR" && visibleObjects["Top Rod"] && <SVRRods position={[15.25, 20, 0.5 + zOffset]} length={36.5} />}
-          {lockType === "SVR" && visibleObjects["Bottom Rod"] && <SVRRods position={[15.25, -19, 0.5 + zOffset]} length={36} />}
-          {visibleObjects["Chassis Cover"] && <Cover position={[15.25, 41, 0 + zOffset]} />}
-          {visibleObjects["Rail"] && <Rail position={[0, 0, -1 + zOffset]} scale={[40, 40, 40]} rotations={{ insert: [0, Math.PI / 2, Math.PI / 2], push: [Math.PI / 2, Math.PI / 2, 0], mounting: [0, Math.PI / 2, Math.PI / 2] }} />}
-          {visibleObjects["Trim"] && <ETTrim position={[15.25, 40.7875, 0.03 - zOffset]} />}
-          {visibleObjects["Screws"] && <Screws topPosition={[15.25, 43.5375, 0.025 + zOffset]} bottomPosition={[15.25, 38.45, 0.025 + zOffset]} thickness={parseFloat(thickness)} />}
-          {visibleObjects["Spindle"] && (
-            <>
-              <SquareSpindle position={[15.25, 39.7875, -0.125 - zOffset]} thickness={parseFloat(thickness)} />
-              <CrossSpindle position={[15.25, 39.7875, -0.125 - zOffset]} thickness={parseFloat(thickness)} />
-            </>
-          )}
-          <OrbitControls />
-        </Canvas>
+      <div className="viewer-container" style={{ paddingLeft: isPanelVisible ? "0" : "20px" }}>
+        <Suspense fallback={<div>Loading 3D...</div>}>
+          <Canvas className="viewer-canvas" camera={{ position: [55, 55, 55] }}>
+            <ambientLight intensity={0.5} />
+            <directionalLight position={[54, 10, 5]} intensity={1.5} />
+            <Door hideDoor={visibleObjects["Ghost Door"]} hideFrame={visibleObjects["Ghost Frame"]} thickness={parseFloat(thickness)} />
+            {visibleObjects["Chassis"] && <Chassis position={[15.25, 0, 0.375 + zOffset]} />}
+            {lockType === "Mortise" && visibleObjects["Mortise Case"] && <MortiseCase position={[15.975, 41, 0]} />}
+            {lockType === "CVR" && visibleObjects["Inner Chassis"] && <CVRInnerChassis position={[15.25, 41, 0]} />}
+            {lockType === "CVR" && <CVRTopCase position={[15.25, 82, 0 + zOffset]} />}
+            {lockType === "CVR" && <CVRBottomCase position={[15.25, 2, 0 + zOffset]} />}
+            {lockType === "SVR" && <SVRTopCase position={[15.25, 82, 0.6 + zOffset]} />}
+            {lockType === "SVR" && <SVRBottomCase position={[15.25, 2, 0.6 + zOffset]} />}
+            {lockType === "CVR" && visibleObjects["Top Rod"] && <CVRRods position={[15.25, 61.5, 0]} length={41} />}
+            {lockType === "CVR" && visibleObjects["Bottom Rod"] && <CVRRods position={[15.25, 21.5, 0]} length={39} />}
+            {lockType === "SVR" && visibleObjects["Top Rod"] && <SVRRods position={[15.25, 61.5, 0.5 + zOffset]} length={41} />}
+            {lockType === "SVR" && visibleObjects["Bottom Rod"] && <SVRRods position={[15.25, 21.5, 0.5 + zOffset]} length={39} />}
+            {visibleObjects["Chassis Cover"] && <Cover position={[15.25, 41, 0 + zOffset]} />}
+            {visibleObjects["Rail"] && <Rail position={[0, 0, -1 + zOffset]} scale={[40, 40, 40]} rotations={{ insert: [0, Math.PI / 2, Math.PI / 2], push: [Math.PI / 2, Math.PI / 2, 0], mounting: [0, Math.PI / 2, Math.PI / 2] }} />}
+            {visibleObjects["Trim"] && <ETTrim position={[15.25, 40.7875, 0.03 - zOffset]} />}
+            {visibleObjects["Screws"] && <Screws topPosition={[15.25, 43.5375, 0.025 + zOffset]} bottomPosition={[15.25, 38.45, 0.025 + zOffset]} thickness={parseFloat(thickness)} />}
+            {visibleObjects["Spindle"] && (
+              <>
+                <SquareSpindle position={[15.25, 39.7875, -0.125 - zOffset]} thickness={parseFloat(thickness)} />
+                <CrossSpindle position={[15.25, 39.7875, -0.125 - zOffset]} thickness={parseFloat(thickness)} />
+              </>
+            )}
+            <OrbitControls />
+          </Canvas>
+        </Suspense>
       </div>
     </div>
   );

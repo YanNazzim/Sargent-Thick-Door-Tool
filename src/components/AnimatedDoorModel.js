@@ -10,6 +10,29 @@ export default function AnimatedDoorModel({ isExplodedView, onPartClick, ...prop
   // 'names' contains the list of every single animation track Blender exported
   const { actions, names } = useAnimations(animations, group);
 
+  // --- NEW: Change Door & Frame Colors ---
+  useEffect(() => {
+    scene.traverse((child) => {
+      if (child.isMesh) {
+        const lowerName = child.name.toLowerCase();
+        
+        // Target the door and frame meshes specifically
+        if (lowerName.includes('door') || lowerName.includes('frame')) {
+          // Clone the material so we don't accidentally colorize shared materials
+          child.material = child.material.clone();
+          
+          // Change the color to a dark charcoal gray
+          child.material.color = new THREE.Color('#2a2a2a');
+          
+          // Increase roughness so the door isn't shiny (prevents glare)
+          child.material.roughness = 0.9;
+          child.material.metalness = 0.1;
+        }
+      }
+    });
+  }, [scene]);
+  // ---------------------------------------
+
   useEffect(() => {
     // Loop through EVERY animation and play them all at the exact same time
     names.forEach((animName) => {
